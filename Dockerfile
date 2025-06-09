@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Install system dependencies
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -8,9 +8,18 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    zip \
+    libpq-dev \
+    libcurl4-openssl-dev \
+    zlib1g-dev \
     curl \
-    && docker-php-ext-install pdo pdo_mysql zip gd
+    zip \
+    && docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    zip \
+    gd \
+    curl
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -19,10 +28,13 @@ RUN a2enmod rewrite
 WORKDIR /var/www/html
 
 # Copy app files
-COPY . /var/www/html
+COPY . .
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copy .env file (use default example for now)
+RUN cp .env.example .env
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
