@@ -4,24 +4,27 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    zip \
     libzip-dev \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    libicu-dev \
     libcurl4-openssl-dev \
     zlib1g-dev \
     curl \
-    zip \
     && docker-php-ext-install \
     pdo \
     pdo_mysql \
     pdo_pgsql \
     zip \
     gd \
-    curl
+    curl \
+    intl \
+    bcmath
 
-# Enable Apache mod_rewrite
+# Enable Apache rewrite module
 RUN a2enmod rewrite
 
 # Set working directory
@@ -33,16 +36,15 @@ COPY . .
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy .env file (use default example for now)
+# Copy .env file (from example)
 RUN cp .env.example .env
 
-# Install PHP dependencies
+# Install PHP dependencies with Composer
 RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
 
-# Expose port 80
+# Expose port 80 and start Apache
 EXPOSE 80
-
 CMD ["apache2-foreground"]
